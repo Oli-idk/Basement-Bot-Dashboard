@@ -135,7 +135,7 @@ export default component$(() => {
               The message when someone joins the server
             </TextInput>
             <p class="mt-2 mb-4">
-              Possible placeholders: <code>{"{USER MENTION}"}</code>{" "}<code>{"{USERNAME}"}</code>
+              Possible placeholders: <code>{"{USER MENTION}"}</code> <code>{"{USERNAME}"}</code> <code>{"{SERVER NAME}"}</code> <code>{"{NUMBER}"}</code> <code>{"{NUMBER FORMATTED}"}</code>
             </p>
             <SelectInput id="joinmessage-channel" label="Channel to send the message in" onChange$={async (event: any) => {
               store.loading.push("joinmessage");
@@ -165,7 +165,7 @@ export default component$(() => {
               The message when someone leaves the server
             </TextInput>
             <p class="mt-2 mb-4">
-              Possible placeholders: <code>{"{USER MENTION}"}</code>{" "}<code>{"{USERNAME}"}</code>
+            Possible placeholders: <code>{"{USER MENTION}"}</code> <code>{"{USERNAME}"}</code> <code>{"{SERVER NAME}"}</code> <code>{"{NUMBER}"}</code> <code>{"{NUMBER FORMATTED}"}</code>
             </p>
             <SelectInput id="leavemessage-channel" label="Channel to send the message in" onChange$={async (event: any) => {
               store.loading.push("leavemessage");
