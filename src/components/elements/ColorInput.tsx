@@ -1,4 +1,3 @@
-
 import { component$, Slot, useVisibleTask$ } from '@builder.io/qwik';
 import ColorPicker from 'simple-color-picker';
 import { RawTextInput } from './TextInput';
@@ -20,11 +19,13 @@ export default component$(({ onInput$, ...props }: any) => {
       if (timeoutId) clearTimeout(timeoutId);
       textinput.value = color;
       timeoutId = setTimeout(() => {
-      onInput$(color);
+        onInput$(color);
       }, 500);
     });
-    
+
     textinput.addEventListener('input', () => {
+      if(!textinput.value.startsWith("#")) textinput.value = "#" + textinput.value;
+      if(textinput.value.length > 7) textinput.value = textinput.value.slice(0, 7);
       picker.setColor(textinput.value);
     });
   });
