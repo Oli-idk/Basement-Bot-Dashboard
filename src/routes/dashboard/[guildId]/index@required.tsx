@@ -14,20 +14,29 @@ import Menu, { MenuCategory, MenuItem, MenuTitle } from "~/components/Menu";
 import { Button } from "~/components/elements/Button";
 import Card, { CardHeader } from "~/components/elements/Card";
 import ColorInput from "~/components/elements/ColorInput";
+import JoinLeaveImage from "~/components/elements/JoinLeaveImage";
 import SelectInput from "~/components/elements/SelectInput";
 import TextInput from "~/components/elements/TextInput";
+import Toggle from "~/components/elements/Toggle";
+import getAuth from "~/components/functions/auth";
 import type { embedData, guildData } from "~/components/functions/settings";
-import { getGuildDataFn, sendEmbedFn, updateSettingFn } from "~/components/functions/settings";
+import { getGuildDataFn, getUserInfoFn, sendEmbedFn, updateSettingFn } from "~/components/functions/settings";
 
 export const useGetGuildData = routeLoader$(
   async (props) => await getGuildDataFn(props)
 );
 
+export const useGetUserData = routeLoader$(async ({ cookie }) => {
+  const auth = await getAuth(cookie);
+  return await getUserInfoFn(auth!.accessToken);
+});
+
 export default component$(() => {
   const guildData = useGetGuildData().value;
-
+  const userData = useGetUserData().value;
   const store = useStore({
     guildData,
+    userData,
     loading: [] as string[],
     ticketEmbed: {
       sendChannel: "",
@@ -39,9 +48,11 @@ export default component$(() => {
       image: "",
       buttonText: "Create Ticket",
     } as embedData,
+    joinImage: guildData instanceof Error ? undefined : guildData.srvconfig.joinimage,
+    leaveImage: guildData instanceof Error ? undefined : guildData.srvconfig.leaveimage,
   });
 
-  if (store.guildData instanceof Error) {
+  if (store.guildData instanceof Error || store.joinImage instanceof Error || store.leaveImage instanceof Error) {
     return (
       <div class="flex flex-col gap-3 items-center justify-center h-full pt-24">
         <h1 class="text-4xl font-bold">Error</h1>
@@ -53,9 +64,22 @@ export default component$(() => {
     );
   }
 
+  if(store.userData instanceof Error) {
+    return (
+      <div class="flex flex-col gap-3 items-center justify-center h-full pt-24">
+        <h1 class="text-4xl font-bold">Error</h1>
+        <p class="text-xl">{(userData as Error).message}</p>
+        <Button onClick$={() => location.reload()} color="danger">
+          Reload
+        </Button>
+      </div>
+    );
+  }
+
   const { guild, channels, roles, srvconfig } = store.guildData as guildData;
 
   useVisibleTask$(() => {
+    console.log(store.userData);
     store.ticketEmbed.sendChannel = channels.filter((c) => c.type == ChannelType.GuildText)[0].id;
   });
 
@@ -91,14 +115,6 @@ export default component$(() => {
           </MenuItem>
           <MenuItem href="#ticketmsg">
             <BrowsersOutline width="24" class="fill-current" /> Ticket Embed
-          </MenuItem>
-        </MenuCategory>
-        <MenuCategory name="Level System">
-          <MenuItem href="#ticketopencategory">
-            <FolderOutline width="24" class="fill-current" /> Open Category
-          </MenuItem>
-          <MenuItem href="#ticketclosedcategory">
-            <FolderOutline width="24" class="fill-current" /> Closed Category
           </MenuItem>
         </MenuCategory>
       </Menu>
@@ -348,6 +364,85 @@ export default component$(() => {
             }}
             >
               Send
+            </Button>
+          </Card>
+        </div>
+        <MenuTitle>Join/Leave Image Settings</MenuTitle>
+        <div class="flex flex-wrap gap-4 py-10">
+          <Card fit>
+            <CardHeader id="joinimage" loading={store.loading.includes("joinimage")}>
+              <Add width="25" class="fill-current" /> Join Image
+            </CardHeader>
+            <JoinLeaveImage join={true} id="joinImage" userdata={store.userData} imagedata={store.joinImage} />
+            <ColorInput key="joinimage-backgroundColor" id="joinimage-backgroundColor" value={srvconfig.joinimage.backgroundColor} onInput$={(color: string) => store.joinImage!.backgroundColor = color}>
+              Background Color
+            </ColorInput>
+            <ColorInput key="joinimage-textColor" id="joinimage-textColor" value={srvconfig.joinimage.textColor} onInput$={(color: string) => store.joinImage!.textColor = color}>
+              Text Color
+            </ColorInput>
+            <ColorInput key="joinimage-shadowColor" id="joinimage-shadowColor" value={srvconfig.joinimage.shadowColor} onInput$={(color: string) => store.joinImage!.shadowColor = color}>
+              Shadow Color
+            </ColorInput>
+            <Toggle id="joinimage-shadow" checked={srvconfig.joinimage.shadow == 'true'} onChange$={async (event: any) => {
+              store.loading.push("joinimage");
+              store.joinImage!.shadow = event.target.checked ? 'true' : 'false';
+              store.loading = store.loading.filter((l) => l != "joinimage");
+            }}>
+              Shadow Enabled
+            </Toggle>
+            <TextInput id="joinimage-image" value={srvconfig.joinimage.image} placeholder="The image for the corners" onChange$={async (event: any) => {
+              store.loading.push("joinimage");
+              store.joinImage!.image = event.target.value;
+              store.loading = store.loading.filter((l) => l != "joinimage");
+            }}>
+              Image for the corners
+            </TextInput>
+            <Button onClick$={async () => {
+              store.loading.push("joinimage");
+              await updateSettingFn("joinimage", JSON.stringify(store.joinImage));
+              store.loading = store.loading.filter((l) => l != "joinimage");
+            }}
+            >
+              Update
+            </Button>
+          </Card>
+        </div>
+        <div class="flex flex-wrap gap-4 py-10">
+          <Card fit>
+            <CardHeader id="leaveimage" loading={store.loading.includes("leaveimage")}>
+              <Remove width="25" class="fill-current" /> Leave Image
+            </CardHeader>
+            <JoinLeaveImage join={false} id="leaveImage" userdata={store.userData} imagedata={store.leaveImage} />
+            <ColorInput key="leaveimage-backgroundColor" id="leaveimage-backgroundColor" value={srvconfig.leaveimage.backgroundColor} onInput$={(color: string) => store.leaveImage!.backgroundColor = color}>
+              Background Color
+            </ColorInput>
+            <ColorInput key="leaveimage-textColor" id="leaveimage-textColor" value={srvconfig.leaveimage.textColor} onInput$={(color: string) => store.leaveImage!.textColor = color}>
+              Text Color
+            </ColorInput>
+            <ColorInput key="leaveimage-shadowColor" id="leaveimage-shadowColor" value={srvconfig.leaveimage.shadowColor} onInput$={(color: string) => store.leaveImage!.shadowColor = color}>
+              Shadow Color
+            </ColorInput>
+            <Toggle id="leaveimage-shadow" checked={srvconfig.leaveimage.shadow == 'true'} onChange$={async (event: any) => {
+              store.loading.push("leaveimage");
+              store.leaveImage!.shadow = event.target.checked ? 'true' : 'false';
+              store.loading = store.loading.filter((l) => l != "leaveimage");
+            }}>
+              Shadow Enabled
+            </Toggle>
+            <TextInput id="leaveimage-image" value={srvconfig.leaveimage.image} placeholder="The image for the corners" onChange$={async (event: any) => {
+              store.loading.push("leaveimage");
+              store.leaveImage!.image = event.target.value;
+              store.loading = store.loading.filter((l) => l != "leaveimage");
+            }}>
+              Image for the corners
+            </TextInput>
+            <Button onClick$={async () => {
+              store.loading.push("leaveimage");
+              await updateSettingFn("leaveimage", JSON.stringify(store.leaveImage));
+              store.loading = store.loading.filter((l) => l != "leaveimage");
+            }}
+            >
+              Update
             </Button>
           </Card>
         </div>

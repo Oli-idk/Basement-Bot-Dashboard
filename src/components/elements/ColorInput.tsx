@@ -13,10 +13,17 @@ export default component$(({ onInput$, ...props }: any) => {
       height: 150,
     });
     const textinput = document.getElementById(props.id)! as HTMLInputElement;
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     picker.onChange((color: string) => {
+      if (timeoutId) clearTimeout(timeoutId);
       textinput.value = color;
+      timeoutId = setTimeout(() => {
       onInput$(color);
+      }, 500);
     });
+    
     textinput.addEventListener('input', () => {
       picker.setColor(textinput.value);
     });

@@ -1,7 +1,7 @@
 import type { RequestEventBase } from "@builder.io/qwik-city";
 import { server$ } from "@builder.io/qwik-city";
 import { PrismaClient } from "@prisma/client";
-import type { APIGuild, APIRole, APIGuildChannel, ChannelType, RESTError, RESTRateLimit } from "discord-api-types/v10";
+import type { APIGuild, APIRole, APIGuildChannel, ChannelType, RESTError, RESTRateLimit, APIUser } from "discord-api-types/v10";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -14,29 +14,40 @@ export interface guildData {
   guild: Guild;
   channels: APIGuildChannel<ChannelType>[];
   roles: APIRole[];
-  srvconfig: settings | null;
+  srvconfig: settings;
+}
+
+interface joinleaveMessage {
+  message: string;
+  channel: string;
+}
+
+interface ticketData {
+  logChannel: string;
+  categories: {
+    open: string;
+    closed: string;
+  }
+  supportRole: string;
+  message: string;
+  transcripts: string;
+}
+
+export interface joinleaveImage {
+  backgroundColor: string;
+  image: string;
+  textColor: string;
+  shadow: string;
+  shadowColor: string;
 }
 
 export interface settings {
   guildId: string;
-  leavemessage: {
-    message: string;
-    channel: string;
-  };
-  joinmessage: {
-    message: string;
-    channel: string;
-  };
-  ticketdata: {
-    logChannel: string;
-    categories: {
-      open: string;
-      closed: string;
-    }
-    supportRole: string;
-    message: string;
-    transcripts: string;
-  }
+  leavemessage: joinleaveMessage;
+  leaveimage: joinleaveImage;
+  joinmessage: joinleaveMessage;
+  joinimage: joinleaveImage;
+  ticketdata: ticketData
   membercountchannel: string;
   wishlistchannel: string;
   ticketId: number;
@@ -109,6 +120,8 @@ export const sendEmbedFn: any = server$(async function (embedData: embedData) {
 const prisma = new PrismaClient();
 
 export const getGuildDataFn = server$(async function (props: RequestEventBase): Promise<guildData | Error> {
+  props = props ?? this;
+
   const guildId = props.params.guildId;
   try {
     const [guild, channels, roles, srvconfig] = await Promise.all([
@@ -125,12 +138,51 @@ export const getGuildDataFn = server$(async function (props: RequestEventBase): 
       ? {
           ...srvconfig,
           joinmessage: JSON.parse(srvconfig.joinmessage),
+          joinimage: JSON.parse(srvconfig.joinimage),
           leavemessage: JSON.parse(srvconfig.leavemessage),
+          leaveimage: JSON.parse(srvconfig.leaveimage),
           wishlistchannel: JSON.parse(srvconfig.wishlistchannel),
           membercountchannel: JSON.parse(srvconfig.membercountchannel),
           ticketdata: JSON.parse(srvconfig.ticketdata),
         }
-      : null;
+      : {
+          guildId,
+          joinmessage: {
+            message: "",
+            channel: "false",
+          },
+          joinimage: {
+            backgroundColor: "#0d0d0d",
+            image: "",
+            textColor: "#f0ccfb",
+            shadow: "true",
+            shadowColor: "#7c4b8b",
+          },
+          leavemessage: {
+            message: "",
+            channel: "false",
+          },
+          leaveimage: {
+            backgroundColor: "#000000",
+            image: "",
+            textColor: "#ffffff",
+            shadow: "true",
+            shadowColor: "#000000",
+          },
+          wishlistchannel: "",
+          membercountchannel: "",
+          ticketdata: {
+            logChannel: "false",
+            categories: {
+              open: "false",
+              closed: "false",
+            },
+            supportRole: "false",
+            message: "false",
+            transcripts: "false",
+          },
+          ticketId: 0,
+      };
 
     return { guild, channels, roles, srvconfig: parsedSrvConfig };
   } catch (error: any) {
@@ -153,13 +205,20 @@ export const updateSettingFn = server$(async function (
   }
 });
 
-async function fetchData(url: string, props: RequestEventBase): Promise<any> {
+export const getUserInfoFn = server$(async function(accessToken: string): Promise<APIUser | Error> {
+  const user = await fetchData("https://discord.com/api/v10/users/@me", this, true, accessToken) as APIUser;
+  return user;
+});
+
+async function fetchData(url: string, props: RequestEventBase, user?: boolean, accessToken?: string): Promise<any> {
+
   const res = await fetch(url, {
     headers: {
-      authorization: `Bot ${props.env.get("BOT_TOKEN")}`,
+      authorization: `${user ? `Bearer ${accessToken}` : `Bot ${props.env.get("BOT_TOKEN")}`}`,
     },
-  }).catch(() => null);
-
+  }).catch((err: any) => {
+    console.log(err)
+  });
   if (!res) throw new Error(`Fetch failed for ${url}`);
 
   const data: RESTError | RESTRateLimit | any = await res.json();

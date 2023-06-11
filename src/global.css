@@ -143,6 +143,11 @@ aside {
   }
 }
 
+@font-face {
+  font-family: "NexaScript";
+  src: url("/fonts/NexaScript-Trial-Regular.ttf");
+}
+
 .Scp {
   display: flex;
   height: 170px !important;
