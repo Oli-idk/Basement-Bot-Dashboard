@@ -1,10 +1,9 @@
 import { component$, useStore } from "@builder.io/qwik";
-import type { DocumentHead } from "@builder.io/qwik-city";
+import { type DocumentHead } from "@builder.io/qwik-city";
 import { Button } from "~/components/elements/Button";
 import Card, { CardHeader } from "~/components/elements/Card";
-import SettingsMenu from "~/components/elements/SettingsMenu";
 import type { guildData } from "~/components/functions/guildData";
-import { useGetGuildData, useGetLeaderboard } from "~/routes/layout-required";
+import { useGetGuildData, useGetLeaderboard } from "~/routes/layout";
 
 export default component$(() => {
   const guildData = useGetGuildData().value;
@@ -37,7 +36,6 @@ export default component$(() => {
 
   return (
     <section class="grid gap-4 grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 mx-auto max-w-screen-2xl px-4 sm:px-6 min-h-[calc(100lvh-80px)]">
-      <SettingsMenu guild={guild} store={store} />
       <div class="sm:col-span-2 lg:col-span-3 2x1:col-span-4 pt22 sm:pt-28">
         <Card fit>
           <CardHeader>
