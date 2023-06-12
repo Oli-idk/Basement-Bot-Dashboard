@@ -17,7 +17,7 @@
     "fmt.check": "prettier --check .",
     "lint": "eslint \"src/**/*.ts*\"",
     "postinstall": "prisma generate",
-    "preview": "qwik build preview && vite preview --open",
+    "preview": "prisma migrate deploy && prisma generate && qwik build preview && vite preview --open",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:prod": "prisma migrate deploy",
