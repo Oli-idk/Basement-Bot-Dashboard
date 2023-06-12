@@ -57,15 +57,15 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Dashboard",
+  title: "Leaderboard",
   meta: [
     {
       name: "description",
-      content: "Basement Bot Dashboard",
+      content: `Basement Bot Leaderboard`,
     },
     {
       property: "og:description",
-      content: "Basement Bot Dashboard",
+      content: "Basement Bot Leaderboard",
     },
   ],
 };

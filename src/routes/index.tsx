@@ -57,11 +57,11 @@ export const head: DocumentHead = {
   meta: [
     {
       name: 'description',
-      content: 'A bot that does stuff ig',
+      content: 'Crazy? I was crazy once, they locked me in a room. A rubber room. A rubber room with rats, and rats make me crazy!',
     },
     {
       property: 'og:description',
-      content: 'A bot that does stuff ig',
+      content: 'Crazy? I was crazy once, they locked me in a room. A rubber room. A rubber room with rats, and rats make me crazy!',
     },
   ],
 };

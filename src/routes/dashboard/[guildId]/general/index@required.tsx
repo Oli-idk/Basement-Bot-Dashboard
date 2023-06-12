@@ -80,15 +80,15 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Dashboard",
+  title: "General Settings",
   meta: [
     {
       name: "description",
-      content: "Basement Bot Dashboard",
+      content: "Basement Bot General Server Settings",
     },
     {
       property: "og:description",
-      content: "Basement Bot Dashboard",
+      content: "Basement Bot General Server Settings",
     },
   ],
 };

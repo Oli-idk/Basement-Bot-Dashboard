@@ -268,15 +268,15 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: "Dashboard",
+  title: "Join/Leave Settings",
   meta: [
     {
       name: "description",
-      content: "Basement Bot Dashboard",
+      content: "Basement Bot Join/Leave Settings",
     },
     {
       property: "og:description",
-      content: "Basement Bot Dashboard",
+      content: "Basement Bot Join/Leave Settings",
     },
   ],
 };
