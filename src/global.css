@@ -7,6 +7,7 @@
 @tailwind utilities;
 
 @layer base {
+
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"] {
@@ -21,6 +22,7 @@
   .animation-delay-2000 {
     animation-delay: 2s;
   }
+
   .animation-delay-4000 {
     animation-delay: 4s;
   }
@@ -34,15 +36,18 @@ html {
 * {
   scroll-behavior: smooth;
 }
+
 *::-webkit-scrollbar {
   appearance: none;
   -webkit-appearance: none;
   width: 8px;
 }
+
 *::-webkit-scrollbar-track {
   background-color: #00000000;
   border-radius: 3px;
 }
+
 *::-webkit-scrollbar-thumb {
   background-color: #ffffff20;
   border-radius: 2px;
@@ -89,11 +94,13 @@ aside {
 
 /* sm */
 @media (min-width: 640px) {
+
   /* Entry transition */
   ::view-transition-new(sidebar):only-child {
     animation: 300ms cubic-bezier(0, 0, 0.2, 1) both fade-in,
       300ms cubic-bezier(0.4, 0, 0.2, 1) both slide-from-left;
   }
+
   /* Exit transition */
   ::view-transition-old(sidebar):only-child {
     animation: 150ms cubic-bezier(0.4, 0, 1, 1) both fade-out,
@@ -102,6 +109,7 @@ aside {
 }
 
 @media (prefers-reduced-motion) {
+
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
@@ -120,23 +128,27 @@ aside {
     opacity: 0;
   }
 }
+
 @keyframes slide-from-top {
   from {
     transform: translateY(30px);
     scale: 0.95;
   }
 }
+
 @keyframes slide-to-bottom {
   to {
     transform: translateY(-30px);
     scale: 0.95;
   }
 }
+
 @keyframes slide-to-left {
   to {
     transform: translateX(-30px);
   }
 }
+
 @keyframes slide-from-left {
   from {
     transform: translateX(-30px);
@@ -156,4 +168,8 @@ aside {
   border-radius: 0.375rem;
   border: hsl(0, 27%, 76%);
   border-width: 1px;
+}
+
+dialog::backdrop {
+  background-color:hsla(0, 0%, 5%, 0.75);
 }

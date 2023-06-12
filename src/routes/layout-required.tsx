@@ -5,8 +5,9 @@ import { PermissionFlagsBits } from 'discord-api-types/v10';
 import getAuth from '~/components/functions/auth';
 import Nav from '~/components/Nav';
 import { fetchGuilds } from './layout-dashboard';
+import { getGuildDataFn, getLeaderboardFn, getUserInfoFn } from '~/components/functions/guildData';
 
-export const getUserGuildFn = server$(async function(accessToken: string, guildId: string): Promise<APIGuild | Error> {
+export const getUserGuildFn = server$(async function (accessToken: string, guildId: string): Promise<APIGuild | Error> {
   const guild = await fetchGuilds({
     authorization: `Bearer ${accessToken}`,
   })
@@ -36,13 +37,26 @@ export const useGetAuth = routeLoader$(async ({ cookie, params, redirect }) => {
   return auth;
 });
 
+export const useGetGuildData = routeLoader$(
+  async (props) => await getGuildDataFn(props)
+);
+
+export const useGetLeaderboard = routeLoader$(
+  async (props) => await getLeaderboardFn(props)
+);
+
+export const useGetUserData = routeLoader$(async ({ cookie }) => {
+  const auth = await getAuth(cookie);
+  return await getUserInfoFn(auth!.accessToken);
+});
+
 export default component$(() => {
   const auth = useGetAuth();
   return (
     <>
       <Nav auth={auth.value} />
       <main>
-        <Slot />
+        <Slot/>
       </main>
     </>
   );

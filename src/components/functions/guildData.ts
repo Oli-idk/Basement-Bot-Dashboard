@@ -1,6 +1,7 @@
 import type { RequestEventBase } from "@builder.io/qwik-city";
 import { server$ } from "@builder.io/qwik-city";
-import { PrismaClient } from "@prisma/client";
+import type { reactionroles, levels, level_rewards } from "@prisma/client";
+import { prisma } from '~/root';
 import type { APIGuild, APIRole, APIGuildChannel, ChannelType, RESTError, RESTRateLimit, APIUser } from "discord-api-types/v10";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -15,6 +16,8 @@ export interface guildData {
   channels: APIGuildChannel<ChannelType>[];
   roles: APIRole[];
   srvconfig: settings;
+  reactionroles: reactionroles[];
+  level_rewards: level_rewards[];
 }
 
 interface joinleaveMessage {
@@ -117,18 +120,18 @@ export const sendEmbedFn: any = server$(async function (embedData: embedData) {
   if ("code" in data) throw new Error(`Send embed error ${data.code}`);
 });
 
-const prisma = new PrismaClient();
-
 export const getGuildDataFn = server$(async function (props: RequestEventBase): Promise<guildData | Error> {
   props = props ?? this;
 
   const guildId = props.params.guildId;
   try {
-    const [guild, channels, roles, srvconfig] = await Promise.all([
-      fetchData(`https://discord.com/api/v10/guilds/${guildId}`, props),
+    const [guild, channels, roles, srvconfig, reactionroles, level_rewards] = await Promise.all([
+      fetchData(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, props),
       fetchData(`https://discord.com/api/v10/guilds/${guildId}/channels`, props),
       fetchData(`https://discord.com/api/v10/guilds/${guildId}/roles`, props),
       prisma.settings.findUnique({ where: { guildId } }),
+      prisma.reactionroles.findMany({ where: { guildId } }),
+      prisma.level_rewards.findMany({ where: { guildId } }),
     ]);
 
     channels.sort((a: { position: number }, b: { position: number }) => a.position - b.position);
@@ -136,58 +139,74 @@ export const getGuildDataFn = server$(async function (props: RequestEventBase): 
 
     const parsedSrvConfig = srvconfig
       ? {
-          ...srvconfig,
-          joinmessage: JSON.parse(srvconfig.joinmessage),
-          joinimage: JSON.parse(srvconfig.joinimage),
-          leavemessage: JSON.parse(srvconfig.leavemessage),
-          leaveimage: JSON.parse(srvconfig.leaveimage),
-          wishlistchannel: JSON.parse(srvconfig.wishlistchannel),
-          membercountchannel: JSON.parse(srvconfig.membercountchannel),
-          ticketdata: JSON.parse(srvconfig.ticketdata),
-        }
+        ...srvconfig,
+        joinmessage: JSON.parse(srvconfig.joinmessage),
+        joinimage: JSON.parse(srvconfig.joinimage),
+        leavemessage: JSON.parse(srvconfig.leavemessage),
+        leaveimage: JSON.parse(srvconfig.leaveimage),
+        wishlistchannel: JSON.parse(srvconfig.wishlistchannel),
+        membercountchannel: JSON.parse(srvconfig.membercountchannel),
+        ticketdata: JSON.parse(srvconfig.ticketdata),
+      }
       : {
-          guildId,
-          joinmessage: {
-            message: "",
-            channel: "false",
+        guildId,
+        joinmessage: {
+          message: "",
+          channel: "false",
+        },
+        joinimage: {
+          backgroundColor: "#0d0d0d",
+          image: "",
+          textColor: "#f0ccfb",
+          shadow: "true",
+          shadowColor: "#7c4b8b",
+        },
+        leavemessage: {
+          message: "",
+          channel: "false",
+        },
+        leaveimage: {
+          backgroundColor: "#000000",
+          image: "",
+          textColor: "#ffffff",
+          shadow: "true",
+          shadowColor: "#000000",
+        },
+        wishlistchannel: "",
+        membercountchannel: "",
+        ticketdata: {
+          logChannel: "false",
+          categories: {
+            open: "false",
+            closed: "false",
           },
-          joinimage: {
-            backgroundColor: "#0d0d0d",
-            image: "",
-            textColor: "#f0ccfb",
-            shadow: "true",
-            shadowColor: "#7c4b8b",
-          },
-          leavemessage: {
-            message: "",
-            channel: "false",
-          },
-          leaveimage: {
-            backgroundColor: "#000000",
-            image: "",
-            textColor: "#ffffff",
-            shadow: "true",
-            shadowColor: "#000000",
-          },
-          wishlistchannel: "",
-          membercountchannel: "",
-          ticketdata: {
-            logChannel: "false",
-            categories: {
-              open: "false",
-              closed: "false",
-            },
-            supportRole: "false",
-            message: "false",
-            transcripts: "false",
-          },
-          ticketId: 0,
+          supportRole: "false",
+          message: "false",
+          transcripts: "false",
+        },
+        ticketId: 0,
       };
 
-    return { guild, channels, roles, srvconfig: parsedSrvConfig };
+    return { guild, channels, roles, srvconfig: parsedSrvConfig, reactionroles, level_rewards };
   } catch (error: any) {
     return new Error(`Failed to fetch guild data: ${error.message}`);
   }
+});
+
+export const getLeaderboardFn = server$(async function (props: RequestEventBase): Promise<levels[]> {
+  props = props ?? this;
+  const levels = await prisma.levels.findMany({
+    where: { guildId: props.params.guildId },
+    orderBy: { level: 'desc' },
+    take: 100,
+  });
+
+  return levels;
+});
+
+export const getUserInfoFn = server$(async function (accessToken: string): Promise<APIUser | Error> {
+  const user = await fetchData("https://discord.com/api/v10/users/@me", this, true, accessToken) as APIUser;
+  return user;
 });
 
 export const updateSettingFn = server$(async function (
@@ -205,12 +224,31 @@ export const updateSettingFn = server$(async function (
   }
 });
 
-export const getUserInfoFn = server$(async function(accessToken: string): Promise<APIUser | Error> {
-  const user = await fetchData("https://discord.com/api/v10/users/@me", this, true, accessToken) as APIUser;
-  return user;
+export const deleteLevelRewardFn = server$(async function (level: number) {
+  const guildId = this.params.guildId;
+  try {
+    await prisma.level_rewards.delete({
+      where: { guildId_level: { guildId, level } },
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to delete level reward: ${error.message}`);
+  }
 });
 
-async function fetchData(url: string, props: RequestEventBase, user?: boolean, accessToken?: string): Promise<any> {
+export const updateLevelRewardFn = server$(async function (rewardInfo: level_rewards) {
+  const guildId = this.params.guildId;
+  try {
+    await prisma.level_rewards.upsert({
+      where: { guildId_level: { guildId, level: rewardInfo.level } },
+      update: rewardInfo,
+      create: { ...rewardInfo, guildId },
+    });
+  } catch (error: any) {
+    throw new Error(`Failed to update level reward: ${error.message}`);
+  }
+})
+
+export async function fetchData(url: string, props: RequestEventBase, user?: boolean, accessToken?: string): Promise<any> {
 
   const res = await fetch(url, {
     headers: {

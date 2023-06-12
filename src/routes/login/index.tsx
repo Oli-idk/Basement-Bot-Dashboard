@@ -1,6 +1,6 @@
 import type { RequestHandler } from '@builder.io/qwik-city';
 import { v4 } from 'uuid';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '~/root';
 
 export const onGet: RequestHandler = async ({ url, redirect, cookie, env }) => {
   const code = url.searchParams.get('code');
@@ -30,7 +30,6 @@ export const onGet: RequestHandler = async ({ url, redirect, cookie, env }) => {
       const sid = v4();
       const res = await fetch('https://discord.com/api/v10/users/@me', { headers: { authorization: `${oauthData.token_type} ${oauthData.access_token}` } });
       const userdata = await res.json();
-      const prisma = new PrismaClient();
       const session = await prisma.sessions.findUnique({
         where: {
           accessToken: oauthData.access_token,
