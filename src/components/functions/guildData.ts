@@ -44,6 +44,17 @@ export interface joinleaveImage {
   shadowColor: string;
 }
 
+export interface memberCount{
+  channel: string;
+  text: string;
+}
+
+export interface counting {
+  channel: string;
+  count: number;
+  countmax: number;
+}
+
 export interface settings {
   guildId: string;
   leavemessage: joinleaveMessage;
@@ -51,8 +62,9 @@ export interface settings {
   joinmessage: joinleaveMessage;
   joinimage: joinleaveImage;
   ticketdata: ticketData
-  membercountchannel: string;
+  membercount: memberCount;
   wishlistchannel: string;
+  counting: counting;
   ticketId: number;
 }
 
@@ -145,7 +157,8 @@ export const getGuildDataFn = server$(async function (props: RequestEventBase): 
         leavemessage: JSON.parse(srvconfig.leavemessage),
         leaveimage: JSON.parse(srvconfig.leaveimage),
         wishlistchannel: JSON.parse(srvconfig.wishlistchannel),
-        membercountchannel: JSON.parse(srvconfig.membercountchannel),
+        membercount: JSON.parse(srvconfig.membercount),
+        counting: JSON.parse(srvconfig.counting),
         ticketdata: JSON.parse(srvconfig.ticketdata),
       }
       : {
@@ -173,7 +186,15 @@ export const getGuildDataFn = server$(async function (props: RequestEventBase): 
           shadowColor: "#000000",
         },
         wishlistchannel: "",
-        membercountchannel: "",
+        membercount: {
+          channel: "false",
+          text: "Members: {COUNT}",
+        },
+        counting: {
+          channel: "false",
+          count: 0,
+          countmax: 0,
+        },
         ticketdata: {
           logChannel: "false",
           categories: {

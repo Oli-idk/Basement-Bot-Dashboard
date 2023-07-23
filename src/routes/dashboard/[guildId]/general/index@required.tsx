@@ -9,6 +9,7 @@ import { Button } from "~/components/elements/Button";
 import Card, { CardHeader } from "~/components/elements/Card";
 import SelectInput from "~/components/elements/SelectInput";
 import SettingsMenu from "~/components/elements/SettingsMenu";
+import TextInput from "~/components/elements/TextInput";
 import type { guildData } from "~/components/functions/guildData";
 import { updateSettingFn } from "~/components/functions/guildData";
 import { useGetGuildData } from "~/routes/layout-required";
@@ -44,23 +45,36 @@ export default component$(() => {
             <CardHeader id="membercount" loading={store.loading.includes("membercount")}>
               <FolderOutline width="25" class="fill-current" /> Member Count Channel
             </CardHeader>
-            <SelectInput id="membercount-input" label="The channel to use as a member count" onChange$={async (event: any) => {
+            <SelectInput id="membercount-channel-input" label="The channel to use as a member count" onChange$={async (event: any) => {
               store.loading.push("membercount");
-              await updateSettingFn("membercountchannel", event.target.value);
+              srvconfig!.membercount.channel = event.target.value;
+              await updateSettingFn("membercount", JSON.stringify(srvconfig?.membercount));
               store.loading = store.loading.filter((l) => l != "membercount");
             }}
             >
-              <option value="false" selected={srvconfig!.membercountchannel == "false"}> None </option>
+              <option value="false" selected={srvconfig!.membercount.channel == "false"}> None </option>
               {channels.map((c) => (
-                <option value={c.id} key={c.id} selected={srvconfig!.membercountchannel == c.id}>{`- ${c.name}`}</option>
+                <option value={c.id} key={c.id} selected={srvconfig!.membercount.channel == c.id}>{`- ${c.name}`}</option>
               ))}
             </SelectInput>
+            <TextInput id="membercount-text-input" value={srvconfig!.membercount.text} placeholder="Members: {COUNT}" onChange$={async (event: any) => {
+              store.loading.push("membercount");
+              srvconfig!.membercount.text = event.target.value;
+              await updateSettingFn("membercount", JSON.stringify(srvconfig?.membercount));
+              store.loading = store.loading.filter((l) => l != "membercount");
+            }}
+            >
+              Channel Name
+            </TextInput>
+            <p>
+              <code>{"{COUNT}"}</code> gets replaced with the member count
+            </p>
           </Card>
           <Card fit>
             <CardHeader id="wishlistchannel" loading={store.loading.includes("wishlistchannel")}>
               <FolderOutline width="25" class="fill-current" /> Wishlist Channel
             </CardHeader>
-            <SelectInput id="wishlistchannel-input" label="The channel to use as a member count" onChange$={async (event: any) => {
+            <SelectInput id="wishlistchannel-input" label="The channel to use for a wishlist" onChange$={async (event: any) => {
               store.loading.push("wishlistchannel");
               await updateSettingFn("wishlistchannel", event.target.value);
               store.loading = store.loading.filter((l) => l != "wishlistchannel");
@@ -70,6 +84,24 @@ export default component$(() => {
               {channels
                 .filter((c) => c.type == ChannelType.GuildText).map((c) => (
                   <option value={c.id} key={c.id} selected={srvconfig!.wishlistchannel == c.id}>{`- ${c.name}`}</option>
+                ))}
+            </SelectInput>
+          </Card>
+          <Card fit>
+            <CardHeader id="countingchannel" loading={store.loading.includes("countingchannel")}>
+              <FolderOutline width="25" class="fill-current" /> Counting Channel
+            </CardHeader>
+            <SelectInput id="countingchannel-input" label="The channel to let people count in" onChange$={async (event: any) => {
+              store.loading.push("countingchannel");
+              srvconfig!.counting.channel = event.target.value;
+              await updateSettingFn("counting", event.target.value);
+              store.loading = store.loading.filter((l) => l != "countingchannel");
+            }}
+            >
+              <option value="false" selected={srvconfig!.counting.channel == "false"}> None </option>
+              {channels
+                .filter((c) => c.type == ChannelType.GuildText).map((c) => (
+                  <option value={c.id} key={c.id} selected={srvconfig!.counting.channel == c.id}>{`- ${c.name}`}</option>
                 ))}
             </SelectInput>
           </Card>

@@ -157,7 +157,7 @@ export default component$(() => {
               store.loading = store.loading.filter((l) => l != "ticketmsg");
             }}
             >
-              Embed Title
+              Embed Description
             </TextInput>
             <ColorInput key="ticketmsg-color" id="ticketmsg-color" value={store.ticketEmbed.color} onInput$={(color: string) => store.ticketEmbed.color = color}>
               Embed Color
