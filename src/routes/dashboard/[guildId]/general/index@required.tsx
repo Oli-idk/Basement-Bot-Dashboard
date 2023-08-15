@@ -88,21 +88,21 @@ export default component$(() => {
             </SelectInput>
           </Card>
           <Card fit>
-            <CardHeader id="countingchannel" loading={store.loading.includes("countingchannel")}>
+          <CardHeader id="counting" loading={store.loading.includes("counting")}>
               <FolderOutline width="25" class="fill-current" /> Counting Channel
             </CardHeader>
-            <SelectInput id="countingchannel-input" label="The channel to let people count in" onChange$={async (event: any) => {
-              store.loading.push("countingchannel");
+            <SelectInput id="counting-channel-input" label="The channel to use as a member count" onChange$={async (event: any) => {
+              store.loading.push("counting");
+              console.log(srvconfig!.counting)
               srvconfig!.counting.channel = event.target.value;
-              await updateSettingFn("counting", event.target.value);
-              store.loading = store.loading.filter((l) => l != "countingchannel");
+              await updateSettingFn("counting", JSON.stringify(srvconfig?.counting));
+              store.loading = store.loading.filter((l) => l != "counting");
             }}
             >
               <option value="false" selected={srvconfig!.counting.channel == "false"}> None </option>
-              {channels
-                .filter((c) => c.type == ChannelType.GuildText).map((c) => (
-                  <option value={c.id} key={c.id} selected={srvconfig!.counting.channel == c.id}>{`- ${c.name}`}</option>
-                ))}
+              {channels.map((c) => (
+                <option value={c.id} key={c.id} selected={srvconfig!.counting.channel == c.id}>{`- ${c.name}`}</option>
+              ))}
             </SelectInput>
           </Card>
         </div>

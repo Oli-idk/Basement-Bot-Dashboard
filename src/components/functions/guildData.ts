@@ -44,7 +44,7 @@ export interface joinleaveImage {
   shadowColor: string;
 }
 
-export interface memberCount{
+export interface memberCount {
   channel: string;
   text: string;
 }
@@ -236,6 +236,7 @@ export const updateSettingFn = server$(async function (
 ) {
   const guildId = this.params.guildId;
   try {
+    console.log(`Updating setting ${name} to ${value}`);
     await prisma.settings.update({
       where: { guildId },
       data: { [name]: value },

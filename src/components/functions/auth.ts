@@ -7,7 +7,7 @@ export default async function getAuth(cookie: Cookie) {
   const session = await prisma.sessions.findUnique({
     where: {
       sessionId: sid,
-    },
+    }
   });
   return session ?? null;
 }
