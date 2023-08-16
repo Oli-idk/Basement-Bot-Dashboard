@@ -123,7 +123,7 @@ export default component$(() => {
             <TextInput big id="leavemessage-message" value={srvconfig?.leavemessage.message} placeholder="The message sent when someone leaves the server" onChange$={async (event: any) => {
               store.loading.push("leavemessage");
               srvconfig!.leavemessage.message = event.target.value;
-              await updateSettingFn("leavemessage", JSON.stringify(srvconfig?.joinmessage));
+              await updateSettingFn("leavemessage", JSON.stringify(srvconfig?.leavemessage));
               store.loading = store.loading.filter((l) => l != "leavemessage");
             }}
             >
