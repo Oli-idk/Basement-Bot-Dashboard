@@ -9,7 +9,10 @@ export default component$(({ guild, store }: any) => {
       <MenuItem guild={guild} href="general/#membercount">
         <FolderOutline width="25" class="fill-current" /> Member Count Channel
       </MenuItem>
-      <MenuItem guild={guild} href="general/#membercount">
+      <MenuItem guild={guild} href="general/#wishlist">
+        <FolderOutline width="25" class="fill-current" /> Wishlist Channel
+      </MenuItem>
+      <MenuItem guild={guild} href="general/#counting">
         <FolderOutline width="25" class="fill-current" /> Wishlist Channel
       </MenuItem>
     </MenuCategory>
